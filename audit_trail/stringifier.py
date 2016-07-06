@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import IntegerField
 from django.utils import formats
+from django.utils.encoding import force_text
 
 
 class ModelFieldStringifier(object):
@@ -19,10 +20,7 @@ class ModelFieldStringifier(object):
 
         if field_class in cls.custom_stringify_methods:
             stringifier = cls.custom_stringify_methods[field_class]
-
-            if isinstance(stringifier, basestring):
-                stringifier = getattr(cls, stringifier)
-
+            stringifier = getattr(cls, stringifier)
             return stringifier(value, field)
 
         if value is None:
@@ -35,13 +33,13 @@ class ModelFieldStringifier(object):
             try:
                 choices_dict = dict(field.choices)
                 value = choices_dict[value]
-                return unicode(value)
+                return force_text(value)
             except KeyError:
-                return unicode(value)
+                return force_text(value)
             except Exception:
                 raise
 
-        return unicode(value)
+        return force_text(value)
 
     @staticmethod
     def stringify_datetime(value, *args):
@@ -77,9 +75,8 @@ class ModelFieldStringifier(object):
             except ObjectDoesNotExist:
                 return None
 
-        return unicode(value)
+        return force_text(value)
 
     @classmethod
     def add_stringifier(cls, field_class, callback):
         cls.custom_stringify_methods[field_class] = callback
-
